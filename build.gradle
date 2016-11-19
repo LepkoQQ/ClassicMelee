@@ -1,0 +1,78 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven { url = 'http://files.minecraftforge.net/maven' }
+        maven { url = 'https://plugins.gradle.org/m2/' }
+        maven { url = 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+        classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.0.8'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'com.matthewprenger.cursegradle'
+
+// ---
+
+def build_number = mod_release_type == 'alpha' || System.getenv('TRAVIS_BUILD_NUMBER') == null ? 'dev' : System.getenv('TRAVIS_BUILD_NUMBER')
+
+group = mod_group
+archivesBaseName = mod_filename
+version = "${minecraft_version}-${mod_version}.${build_number}"
+
+sourceCompatibility = targetCompatibility = '1.8'
+
+minecraft {
+    version = "${minecraft_version}-${forge_version}"
+
+    if (file('../run').exists()) {
+        runDir = '../run'
+    } else {
+        runDir = 'run'
+    }
+
+    mappings = mappings_version
+
+    replace '${version}': project.version, '${mcversion}': project.minecraft.version
+}
+
+processResources {
+    // this will ensure that this task is redone when the versions change.
+    inputs.property 'version', project.version
+    inputs.property 'mcversion', project.minecraft.version
+
+    // expand variables
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.properties'
+        include '**/*.info'
+
+        expand 'version': project.version, 'mcversion': project.minecraft.version
+    }
+
+    // copy everything else
+    from(sourceSets.main.resources.srcDirs) {
+        exclude '**/*.properties'
+        exclude '**/*.info'
+    }
+}
+
+// Add Access Transformer to manifest
+jar {
+    manifest {
+        attributes 'FMLAT': 'classicmelee_at.cfg'
+    }
+}
+
+tasks.curseforge.enabled = curse_project_id != 0 && build_number != 'dev' && System.getenv('TRAVIS_PULL_REQUEST') == 'false' && System.getenv('CURSE_API_KEY') != null
+
+curseforge {
+    apiKey = System.getenv('CURSE_API_KEY') ?: 0;
+
+    project {
+        id = curse_project_id
+        releaseType = mod_release_type
+    }
+}

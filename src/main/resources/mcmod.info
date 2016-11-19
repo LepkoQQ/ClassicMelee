@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "classicmelee",
+    "name": "Classic Melee",
+    "description": "Allows you to change melee mechanics to be more like in older Minecraft versions.",
+    "version": "${version}",
+    "mcversion": "${mcversion}",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "Lepko"
+    ],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
